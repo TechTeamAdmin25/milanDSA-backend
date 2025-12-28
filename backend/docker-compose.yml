@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  backend:
+    container_name: milan-backend
+    build: .
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    restart: unless-stopped
