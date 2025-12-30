@@ -1,31 +1,36 @@
-import { Express } from "express";
 import fs from "fs";
 import path from "path";
+import { Application } from "express";
 
-export const registerRoutes = (app: Express) => {
-  const routesDir = path.join(__dirname, "..", "routes");
+export const registerRoutes = (app: Application) => {
+  const routesDir = path.join(__dirname, "../routes");
 
   fs.readdirSync(routesDir).forEach((folder) => {
-    const routePath = path.join(routesDir, folder);
+    const tsRoute = path.join(routesDir, folder, "route.ts");
+    const jsRoute = path.join(routesDir, folder, "route.js");
 
-    // Only process directories
-    if (!fs.statSync(routePath).isDirectory()) return;
+    const routeFile = fs.existsSync(tsRoute)
+      ? tsRoute
+      : fs.existsSync(jsRoute)
+      ? jsRoute
+      : null;
 
-    // Resolve correct file name AFTER build
-    const routeFile = path.join(routePath, "route.js");
-
-    if (!fs.existsSync(routeFile)) {
-      console.warn(`⚠️ No route.js found in /${folder}`);
+    if (!routeFile) {
+      console.warn(`⚠️ No route file found in /${folder}`);
       return;
     }
 
-    const route = require(routeFile);
+    const imported = require(routeFile);
 
-    if (!route.default) {
-      throw new Error(`❌ route.js in /${folder} has no default export`);
+    // ✅ THIS IS THE IMPORTANT FIX
+    const router = imported.default || imported;
+
+    if (typeof router !== "function") {
+      console.error(`❌ Invalid router export in /${folder}`);
+      return;
     }
 
-    app.use(`/${folder}`, route.default);
-    console.log(`📌 Route registered: /${folder}`);
+    app.use(`/${folder}`, router);
+    console.log(`✅ Mounted /${folder}`);
   });
 };
