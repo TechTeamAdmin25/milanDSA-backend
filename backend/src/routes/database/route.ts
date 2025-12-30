@@ -15,6 +15,6 @@ const router = Router();
  *       200:
  *         description: User synced successfully
  */
-router.post("/sync-user", requireAuth, syncUserController);
+router.post("/", requireAuth, syncUserController);
 
 export default router;
