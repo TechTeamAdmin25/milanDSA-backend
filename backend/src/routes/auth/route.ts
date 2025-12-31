@@ -15,6 +15,6 @@ const router = Router();
  *       200:
  *         description: Authenticated
  */
-router.get("/me", requireAuth, getMeController);
+router.get("/", requireAuth, getMeController);
 
 export default router;
